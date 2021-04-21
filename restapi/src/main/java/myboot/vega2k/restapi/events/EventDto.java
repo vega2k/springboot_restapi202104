@@ -3,6 +3,7 @@ package myboot.vega2k.restapi.events;
 import java.time.LocalDateTime;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -18,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventDto {
-	@NotEmpty
+	@NotBlank
 	private String name;
 	
 	@NotEmpty
@@ -42,8 +43,10 @@ public class EventDto {
 	
 	private String location;
 	
-	@Min(0)
+	@Min(value = 0, message = "basePrice는 0 보다 큰 값이어야 합니다")
 	private int basePrice;
+	@Min(0)
 	private int maxPrice;
+	@Min(0)
 	private int limitOfEnrollment;
 }
