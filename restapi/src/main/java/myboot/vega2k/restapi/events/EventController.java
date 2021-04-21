@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
@@ -43,12 +44,33 @@ public class EventController {
 
 		Event event = modelMapper.map(eventDto, Event.class);
 
+		//등록하기 전에 free와 offline 값을 set 한다
+		event.update();
+		
 		Event addEvent = eventRepository.save(event);
 
 		// http://localhost:8087/api/events/10
-		WebMvcLinkBuilder selfLinkBuilder = WebMvcLinkBuilder.linkTo(EventController.class).slash(addEvent.getId());
+		WebMvcLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(addEvent.getId());
 		URI createUri = selfLinkBuilder.toUri();
+		/*
+		 * "_links": {
+	        "query-events": {
+	            "href": "http://localhost:8087/api/events"
+	        },
+	        "self": {
+	            "href": "http://localhost:8087/api/events/11"
+	        },
+	        "update-event": {
+	            "href": "http://localhost:8087/api/events/11"
+	        }
+    	}
+		 */
+		EventResource eventResource = new EventResource(addEvent);
+		eventResource.add(linkTo(EventController.class).withRel("query-events"));
+		eventResource.add(selfLinkBuilder.withSelfRel());
+		eventResource.add(selfLinkBuilder.withRel("update-event"));
+		
 
-		return ResponseEntity.created(createUri).body(addEvent);
+		return ResponseEntity.created(createUri).body(eventResource);
 	}
 }
