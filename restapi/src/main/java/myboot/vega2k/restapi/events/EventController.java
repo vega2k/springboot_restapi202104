@@ -37,12 +37,12 @@ public class EventController {
 	public ResponseEntity<?> createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) {
 		// Validation API에서 제공하는 어노테이션을 사용해서 입력항목 검증
 		if (errors.hasErrors()) {
-			return ResponseEntity.badRequest().body(new ErrorsResource(errors));
+			return badRequest(errors);
 		}
 		// 사용자정의 EventValidator를 사용해서 입력항목 biz logic 검증
 		eventValidator.validate(eventDto, errors);
 		if (errors.hasErrors()) {
-			return ResponseEntity.badRequest().body(new ErrorsResource(errors));
+			return badRequest(errors);
 		}
 
 		Event event = modelMapper.map(eventDto, Event.class);
@@ -74,5 +74,9 @@ public class EventController {
 		
 
 		return ResponseEntity.created(createUri).body(eventResource);
+	}
+
+	private ResponseEntity<?> badRequest(Errors errors) {
+		return ResponseEntity.badRequest().body(new ErrorsResource(errors));
 	}
 }
