@@ -8,6 +8,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +16,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import myboot.vega2k.restapi.accounts.Account;
 
 @Builder
 @AllArgsConstructor
@@ -59,4 +61,7 @@ public class Event {
 			this.offline = true;
 		}
 	}
+	
+	@ManyToOne
+	 private Account manager;
 }
