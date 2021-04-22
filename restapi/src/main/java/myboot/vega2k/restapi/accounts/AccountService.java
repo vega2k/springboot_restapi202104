@@ -2,7 +2,7 @@ package myboot.vega2k.restapi.accounts;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +30,6 @@ public class AccountService implements UserDetailsService {
 
 	private Collection<? extends GrantedAuthority> authorities(Set<AccountRole> roles) {
 		//Stream<AccountRole> -> Stream<SimpleGrantedAuthority<AccountRole>> -> Collection<GrantedAuthority>>
-		return roles.stream().map(role -> new SimpleGrantedAuthority(role.name())).collect(Collectors.toSet());
+		return roles.stream().map(role -> new SimpleGrantedAuthority(role.name())).collect(toSet());
 	}
 }
