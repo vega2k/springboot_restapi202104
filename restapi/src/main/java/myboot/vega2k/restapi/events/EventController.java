@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import myboot.vega2k.restapi.accounts.Account;
 import myboot.vega2k.restapi.accounts.AccountAdapter;
 import myboot.vega2k.restapi.common.ErrorsResource;
 
@@ -92,21 +93,20 @@ public class EventController {
 	// Event 목록
 	@GetMapping
 	public ResponseEntity<?> queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler, 
-			@AuthenticationPrincipal AccountAdapter currentUser ) {
+			@AuthenticationPrincipal(expression = "account") Account account ) {
 		Page<Event> page = this.eventRepository.findAll(pageable);
 		// PagedModel<EntityModel<Event>> pagedResources = assembler.toModel(page);
 		/*
-		 * 1. toModel(Page<T> page,
-		 * org.springframework.hateoas.server.RepresentationModelAssembler<T,R>
-		 * assembler) 2. RepresentationModelAssembler 는 함수형 인터페이스이다. 3. event -> new
-		 * EventResource(event) => RepresentationModelAssembler 의 D toModel(T) 메서드를 재정의
-		 * 하는것을 람다식으로 표현한 것이다
+		 * 1. toModel(Page<T> page, org.springframework.hateoas.server.RepresentationModelAssembler<T,R> assembler) 
+		 * 2. RepresentationModelAssembler는 함수형 인터페이스이다. 
+		 * 3. event -> new EventResource(event) => RepresentationModelAssembler 의 D toModel(T) 
+		 * 메서드를 재정의 하는 것을 람다식으로 표현한 것이다
 		 */
 		PagedModel<RepresentationModel<EventResource>> pagedResources = assembler.toModel(page,
 				event -> new EventResource(event));
 		
 		//Access Token으로 인증한 사용자이면 Event 등록 링크를 전달하기
-		if(currentUser != null) {
+		if(account != null) {
 			pagedResources.add(linkTo(EventController.class).withRel("create-event"));
 		}
 		
