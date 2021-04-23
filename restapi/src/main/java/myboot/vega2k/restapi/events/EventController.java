@@ -48,76 +48,85 @@ public class EventController {
 
 	// Event 수정
 	@PutMapping("/{id}")
-	public ResponseEntity<?> updateEvent(@PathVariable Integer id, @RequestBody @Valid EventDto eventDto, Errors errors) {
-		//요청 id로 Event 조회
+	public ResponseEntity<?> updateEvent(@PathVariable Integer id, @RequestBody @Valid EventDto eventDto,
+			Errors errors) {
+		// 요청 id로 Event 조회
 		Optional<Event> optionalEvent = this.eventRepository.findById(id);
-		//Optional 포함된 Event 객체가 null 이면 404 Error 발생시킨다.
+		// Optional 포함된 Event 객체가 null 이면 404 Error 발생시킨다.
 		if (optionalEvent.isEmpty()) {
 			return ResponseEntity.notFound().build();
 		}
-		//입력 항목 검증해서 에러가 나면 400 Error 발생
+		// 입력 항목 검증해서 에러가 나면 400 Error 발생
 		if (errors.hasErrors()) {
 			return badRequest(errors);
 		}
-		//EventValidator를 사용해서 입력 항목 로직 검증해서 에러가 나면 400 Error 발생
+		// EventValidator를 사용해서 입력 항목 로직 검증해서 에러가 나면 400 Error 발생
 		this.eventValidator.validate(eventDto, errors);
 		if (errors.hasErrors()) {
 			return badRequest(errors);
 		}
-		
-		//Optional 포함된 Event 객체 꺼낸다
+
+		// Optional 포함된 Event 객체 꺼낸다
 		Event existingEvent = optionalEvent.get();
-		
-		//DB에서 읽어온 Event 객체와 수정하려는 입력데이터 담고 있는 Event 객체를 매핑
+
+		// DB에서 읽어온 Event 객체와 수정하려는 입력데이터 담고 있는 Event 객체를 매핑
 		this.modelMapper.map(eventDto, existingEvent);
-		//DB에 수정 요청
+		// DB에 수정 요청
 		Event savedEvent = this.eventRepository.save(existingEvent);
-		
-		//수정된 Event 객체를 EventResource로 Wrapping 한다.
+
+		// 수정된 Event 객체를 EventResource로 Wrapping 한다.
 		EventResource eventResource = new EventResource(savedEvent);
-		//EventResource 객체를 응답의 body에 내려 보낸다.
+		// EventResource 객체를 응답의 body에 내려 보낸다.
 		return ResponseEntity.ok(eventResource);
 	}
 
 	// Event 1개
 	@GetMapping("/{id}")
-	public ResponseEntity<?> getEvent(@PathVariable Integer id) {
+	public ResponseEntity<?> getEvent(@PathVariable Integer id, @CurrentUser Account currentUser) {
 		Optional<Event> optionalEvent = this.eventRepository.findById(id);
 		if (optionalEvent.isEmpty()) {
 			return ResponseEntity.notFound().build();
 		}
 		Event event = optionalEvent.get();
 		EventResource eventResource = new EventResource(event);
+
+		// Access Token으로 요청하면 update link 보여주기
+		if ((event.getManager() != null) && (event.getManager().equals(currentUser))) {
+			eventResource.add(linkTo(EventController.class).slash(event.getId()).withRel("update-event"));
+		}
+
 		return ResponseEntity.ok(eventResource);
 	}
 
 	// Event 목록
 	@GetMapping
-	public ResponseEntity<?> queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler, 
-			@CurrentUser Account account ) {
+	public ResponseEntity<?> queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler,
+			@CurrentUser Account account) {
 		Page<Event> page = this.eventRepository.findAll(pageable);
 		// PagedModel<EntityModel<Event>> pagedResources = assembler.toModel(page);
 		/*
-		 * 1. toModel(Page<T> page, org.springframework.hateoas.server.RepresentationModelAssembler<T,R> assembler) 
-		 * 2. RepresentationModelAssembler는 함수형 인터페이스이다. 
-		 * 3. event -> new EventResource(event) => RepresentationModelAssembler 의 D toModel(T) 
-		 * 메서드를 재정의 하는 것을 람다식으로 표현한 것이다
+		 * 1. toModel(Page<T> page,
+		 * org.springframework.hateoas.server.RepresentationModelAssembler<T,R>
+		 * assembler) 2. RepresentationModelAssembler는 함수형 인터페이스이다. 3. event -> new
+		 * EventResource(event) => RepresentationModelAssembler 의 D toModel(T) 메서드를 재정의
+		 * 하는 것을 람다식으로 표현한 것이다
 		 */
 		PagedModel<RepresentationModel<EventResource>> pagedResources = assembler.toModel(page,
 				event -> new EventResource(event));
-		
-		//Access Token으로 인증한 사용자이면 Event 등록 링크를 전달하기
-		if(account != null) {
+
+		// Access Token으로 인증한 사용자이면 Event 등록 링크를 전달하기
+		if (account != null) {
 			pagedResources.add(linkTo(EventController.class).withRel("create-event"));
 		}
-		
+
 		return ResponseEntity.ok(pagedResources);
 		// return ResponseEntity.ok(this.eventRepository.findAll(pageable));
 	}
 
 	// Event 등록
 	@PostMapping
-	public ResponseEntity<?> createEvent(@RequestBody @Valid EventDto eventDto, Errors errors, @CurrentUser Account currentUser) {
+	public ResponseEntity<?> createEvent(@RequestBody @Valid EventDto eventDto, Errors errors,
+			@CurrentUser Account currentUser) {
 		// Validation API에서 제공하는 어노테이션을 사용해서 입력항목 검증
 		if (errors.hasErrors()) {
 			return badRequest(errors);
@@ -132,10 +141,10 @@ public class EventController {
 
 		// 등록하기 전에 free와 offline 값을 set 한다
 		event.update();
-		
+
 		// Event객체 manager변수에 Account 객체를 저장한다
 		event.setManager(currentUser);
-		
+
 		Event addEvent = eventRepository.save(event);
 
 		// http://localhost:8087/api/events/10
