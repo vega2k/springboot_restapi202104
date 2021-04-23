@@ -8,11 +8,16 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 
+import myboot.vega2k.restapi.common.AppProperties;
+
 @Configuration
 @EnableAuthorizationServer
 public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
 	@Autowired
 	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	AppProperties appProperties;
 
 	// OAuth2 읶증 서버 보안(Password) 정보를 설정
 	@Override
@@ -32,8 +37,8 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
 	@Override
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 		clients.inMemory()
-		 .withClient("myApp")
-		 .secret(this.passwordEncoder.encode("pass"))
+		 .withClient(appProperties.getClientId())
+		 .secret(this.passwordEncoder.encode(appProperties.getClientSecret()))
 		 .authorizedGrantTypes("password", "refresh_token")
 		 .scopes("read", "write")
 		 .accessTokenValiditySeconds(10 * 60)
