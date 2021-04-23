@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import myboot.vega2k.restapi.accounts.Account;
 import myboot.vega2k.restapi.accounts.AccountRole;
 import myboot.vega2k.restapi.accounts.AccountService;
+import myboot.vega2k.restapi.common.AppProperties;
 
 @Configuration
 public class AppConfig {
@@ -35,14 +36,25 @@ public class AppConfig {
 			@Autowired
 			AccountService accountService;
 
+			@Autowired
+			AppProperties appProperties;
+			
 			@Override
 			public void run(ApplicationArguments args) throws Exception {
 				Account account = Account.builder()
-						.email("user@email.com")
-						.password("user")
-						.roles(Set.of(AccountRole.ADMIN, AccountRole.USER))
+						.email(appProperties.getUserUsername())
+						.password(appProperties.getUserPassword())
+						.roles(Set.of(AccountRole.USER))
 						.build();
 				accountService.saveAccount(account);
+				
+				Account accountAdmin = Account.builder()
+						.email(appProperties.getAdminUsername())
+						.password(appProperties.getAdminPassword())
+						.roles(Set.of(AccountRole.USER, AccountRole.ADMIN))
+						.build();
+				accountService.saveAccount(accountAdmin);
+				
 			}
 		};
 	}
