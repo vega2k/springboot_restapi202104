@@ -16,6 +16,7 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import myboot.vega2k.restapi.accounts.AccountAdapter;
 import myboot.vega2k.restapi.common.ErrorsResource;
 
 @Controller
@@ -89,7 +91,8 @@ public class EventController {
 
 	// Event 목록
 	@GetMapping
-	public ResponseEntity<?> queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler) {
+	public ResponseEntity<?> queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler, 
+			@AuthenticationPrincipal AccountAdapter currentUser ) {
 		Page<Event> page = this.eventRepository.findAll(pageable);
 		// PagedModel<EntityModel<Event>> pagedResources = assembler.toModel(page);
 		/*
@@ -101,7 +104,12 @@ public class EventController {
 		 */
 		PagedModel<RepresentationModel<EventResource>> pagedResources = assembler.toModel(page,
 				event -> new EventResource(event));
-
+		
+		//Access Token으로 인증한 사용자이면 Event 등록 링크를 전달하기
+		if(currentUser != null) {
+			pagedResources.add(linkTo(EventController.class).withRel("create-event"));
+		}
+		
 		return ResponseEntity.ok(pagedResources);
 		// return ResponseEntity.ok(this.eventRepository.findAll(pageable));
 	}
