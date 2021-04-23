@@ -63,5 +63,5 @@ public class Event {
 	}
 	
 	@ManyToOne
-	 private Account manager;
+	private Account manager;
 }

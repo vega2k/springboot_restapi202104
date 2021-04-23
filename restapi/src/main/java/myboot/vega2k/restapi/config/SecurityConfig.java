@@ -12,11 +12,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.anonymous()
-		.and()
+			.and()
 		.formLogin()
-		.and()
+			.and()
 		.authorizeRequests()
-		.mvcMatchers(HttpMethod.GET, "/api/**").permitAll()
-		.anyRequest().authenticated();
+			.mvcMatchers(HttpMethod.GET, "/api/**").permitAll()
+			.anyRequest().authenticated();
 	}
 }
