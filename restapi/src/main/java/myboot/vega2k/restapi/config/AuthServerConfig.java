@@ -44,4 +44,6 @@ public class AuthServerConfig extends AuthorizationServerConfigurerAdapter {
 		 .accessTokenValiditySeconds(10 * 60)
 		 .refreshTokenValiditySeconds(6 * 10 * 60);		
 	}
+	
+	
 }
